@@ -1,0 +1,8 @@
+# ignore everything
+*
+
+# except these
+!.gitignore
+!oauth_tokens.py
+!uld.py
+!requirements.txt
