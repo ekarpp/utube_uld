@@ -46,11 +46,14 @@ def upld(video, token):
     }
 
     MIME = mimetypes.guess_type(video.path)
+    if MIME is None:
+        print("ERROR")
+        return
 
     with open(video.path, "rb") as f:
         parts = [
             {"name": "json", "headers": {"Content-Type": "application/json"}, "data": json.dumps(js)},
-            {"name": "video", "headers": {"Content-Type": "video/x-matroska", "Content-Transfer-Encoding": "binary"}, "data": f.read()}
+            {"name": "video", "headers": {"Content-Type": MIME, "Content-Transfer-Encoding": "binary"}, "data": f.read()}
         ]
         data, content_type = make_multipart(parts)
 
@@ -69,7 +72,7 @@ def upld(video, token):
 
 def main():
     parser = argparse.ArgumentParser(prog="uld", description="Uploads youtube videoust")
-    parser.add_argument("-v", help="videoust path", dest="path") # check it exists, in here
+    parser.add_argument("path", help="videoust path")
     parser.add_argument("-c", help="videoust category", dest="category", required=True)
     parser.add_argument("-t", help="title", dest="title", required=True)
     parser.add_argument("-d", help="description", dest="description", required=True)
