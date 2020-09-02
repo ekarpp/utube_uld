@@ -36,21 +36,21 @@ def upld(video, token):
 
     js = {
         "snippet": {
-            "title": video.t,
-            "description": video.d,
-            "categoryId": video.c
+            "title": video.title,
+            "description": video.description,
+            "categoryId": video.category
         },
         "status": {
             "privacyStatus": "private"
         }
     }
 
-    MIME = mimetypes.guess_type(video.v)
+    MIME = mimetypes.guess_type(video.path)
 
-    with open(video.v, "rb") as f:
+    with open(video.path, "rb") as f:
         parts = [
             {"name": "json", "headers": {"Content-Type": "application/json"}, "data": json.dumps(js)},
-            {"name": "video", {"Content-Type": "video/x-matroska", "Content-Transfer-Encoding": "binary"}, data = f.read()}
+            {"name": "video", "headers": {"Content-Type": "video/x-matroska", "Content-Transfer-Encoding": "binary"}, "data": f.read()}
         ]
         data, content_type = make_multipart(parts)
 
@@ -67,13 +67,19 @@ def upld(video, token):
         #print(prep.body)
     return
 
+def main():
+    parser = argparse.ArgumentParser(prog="uld", description="Uploads youtube videoust")
+    parser.add_argument("-v", help="videoust path", dest="path") # check it exists, in here
+    parser.add_argument("-c", help="videoust category", dest="category", required=True)
+    parser.add_argument("-t", help="title", dest="title", required=True)
+    parser.add_argument("-d", help="description", dest="description", required=True)
+    vid = parser.parse_args()
 
-parser = argparse.ArgumentParser(prog="utube upld", description="Uploads youtube videoust")
-parser.add_argument("-v", help="videoust path", required=True) # check it exists, in here
-parser.add_argument("-c", help="videoust category", required=True)
-parser.add_argument("-t", help="title", required=True)
-parser.add_argument("-d", help="description", required=True)
-vid = parser.parse_args()
+    if not os.path.isfile(vid.path):
+        print("ERROR")
+        return
 
-tokens = oauth_tokens.Tokens()
-upld(vid, tokens.auth_header())
+    tokens = oauth_tokens.Tokens()
+    upld(vid, tokens.auth_header())
+
+main()
