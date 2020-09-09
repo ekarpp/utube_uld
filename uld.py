@@ -18,9 +18,9 @@ each dictionary contains a description for a HTTP request
 required dictionary fields are: name, headers and data
 '''
 def make_multipart(parts):
-    fields = [RequestField(name=part.name, headers=part.headers, data=part.data) for part in parts]
+    fields = [RequestField(name=part["name"], headers=part["headers"], data=part["data"]) for part in parts]
     bound = choose_boundary()
-    data, _ = encode_multipart_formdata([f1, f2], bound)
+    data, _ = encode_multipart_formdata(fields, bound)
     content_type = "multipart/related; boundary=%s" % bound
 
     return data, content_type
