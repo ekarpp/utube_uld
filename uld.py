@@ -6,8 +6,8 @@ import argparse
 import json
 import mimetypes
 
-from urllib3.filepost import encode_multipart_formdata, choose_boundary
-from urllib3.fields import RequestField
+# todo: write own
+from urllib3.filepost import choose_boundary
 
 
 
@@ -15,14 +15,27 @@ from urllib3.fields import RequestField
 makes a multipart/related HTTP request body
 parts is an array containing dictionaries
 each dictionary contains a description for a HTTP request
-required dictionary fields are: name, headers and data
+required dictionary fields are: headers and data
+data must be in binary form
 '''
 def make_multipart(parts):
-    fields = [RequestField(name=part["name"], headers=part["headers"], data=part["data"]) for part in parts]
     bound = choose_boundary()
-    data, _ = encode_multipart_formdata(fields, bound)
     content_type = "multipart/related; boundary=%s" % bound
 
+    bound = ("\n--" + bound).encode()
+    # data is the whole body
+    data = bound[1:]
+    for part in parts:
+        # and rq is the body for each part
+        rq = "\n"
+        for header in part["headers"]:
+            rq += f"{header}: {part['headers'][header]}\n"
+        rq += "\n"
+        try:
+            data += rq.encode() + part["data"] + bound
+        except TypeError:
+            print("Data was not bytes")
+    data += b"--\n"
     return data, content_type
 
 
@@ -52,22 +65,16 @@ def upld(video, token):
 
     with open(video.path, "rb") as f:
         parts = [
-            {"name": "json", "headers": {"Content-Type": "application/json"}, "data": json.dumps(js)},
+            {"name": "json", "headers": {"Content-Type": "application/json"}, "data": json.dumps(js).encode()},
             {"name": "video", "headers": {"Content-Type": MIME, "Content-Transfer-Encoding": "binary"}, "data": f.read()}
         ]
         data, content_type = make_multipart(parts)
 
         headers["Content-Type"] = content_type
-        #URL = "http://httpbin.org/post"
         params = {"part": "snippet,status", "uploadType": "multipart"}
         r = requests.post(URL, data = data, headers = headers, params = params)
         print(r)
         print(r.text)
-        #req = requests.Request("POST", URL, headers = headers, data = data)
-        #prep = req.prepare()
-        #print('\r\n'.join('{}: {}'.format(k, v) for k, v in req.headers.items()))
-        #print()
-        #print(prep.body)
     return
 
 def main():
