@@ -45,7 +45,7 @@ def upld(video, token):
         }
     }
 
-    MIME = mimetypes.guess_type(video.path)
+    MIME = mimetypes.guess_type(video.path)[0]
     if MIME is None or MIME.split("/")[0] != "video":
         print("ERROR")
         return
